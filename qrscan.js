@@ -35,6 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
     saveAttendanceBtn.addEventListener('click', () => {
       if (scannedData) {
         const dataToSend = { ticket_uuid: scannedData };
+
+        if (!isValidDataToSend(dataToSend)) {
+          alert('Data tidak valid. Silakan pindai ulang QR Code.');
+          return;
+        }
+
         fetch('/presensi', {
           method: 'POST',
           headers: {
@@ -42,7 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           body: JSON.stringify(dataToSend),
         })
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Terjadi kesalahan saat menyimpan absensi.');
+          }
+          return response.json();
+        })
         .then(data => {
           console.log('Respon dari backend:', data);
           alert('Absensi berhasil disimpan!');
@@ -55,4 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Scan QR Code terlebih dahulu sebelum menyimpan absensi.');
       }
     });
+
+
+    function isValidDataToSend(data){
+      return data.ticker_uuid !== undefined && data.ticker_uuid.trim() !== '';
+    }
+    
   });
